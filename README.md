@@ -1,1 +1,1 @@
-CS184-ClothSim
+# Assignment 4: Cloth Simulation

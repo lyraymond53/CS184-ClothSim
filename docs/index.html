@@ -1,0 +1,332 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<style>
+  body {
+    padding: 100px;
+    width: 1000px;
+    margin: auto;
+    text-align: left;
+    font-weight: 300;
+    font-family: 'Open Sans', sans-serif;
+    color: #121212;
+  }
+  h1, h2, h3, h4 {
+    font-family: 'Source Sans Pro', sans-serif;
+  }
+</style>
+<title>CS 184 ClothSim</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link href="https://fonts.googleapis.com/css?family=Open+Sans|Source+Sans+Pro" rel="stylesheet">
+</head>
+
+
+<body>
+
+<h1 align="middle">CS 184: Computer Graphics and Imaging, Spring 2019</h1>
+<h1 align="middle">Project 4: Cloth Simulator</h1>
+<h2 align="middle">Raymond Ly, CS184-aiv</h2>
+
+<br><br>
+
+<div>
+
+<h2 align="middle">Overview</h2>
+<p>For this project, we sought out to create a realistic cloth simulator that would accurately react to the forces exerted on it. Additionally, we implemented shader functionality to
+allow our cloth surface to react to lighting, textures, and reflection.</p>
+
+<h2 align="middle">Part I: Masses and Springs</h2>
+    <div align="center">
+        <table style="width=100%">
+            <tr>Wireframes:Springs and Point Masses</tr>
+            <tr>
+                <td align="middle">
+                    <img src="images/P1_all.png" width="480px" />
+                    <figcaption align="middle"> All Springs</figcaption>
+                </td>
+                <td align="middle">
+                    <img src="images/P1_all_dropped.png" width="480px" />
+                    <figcaption align="middle"> All Springs at Rest</figcaption>
+                </td>
+            </tr>
+            <tr>
+                <td align="middle">
+                    <img src="images/P1_no_shearing.png" width="480px" />
+                    <figcaption align="middle"> No Shearing Springs</figcaption>
+                </td>
+                <td align="middle">
+                    <img src="images/P1_only_shearing.png" width="480px" />
+                    <figcaption align="middle"> Only Shearing Springs</figcaption>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <h2 align="middle">Part II: Simulation via Numerical Integration</h2>
+    <div align="center">
+        <table style"width=100%">
+
+        <tr>
+            <td align="middle">
+                <img src="images/P2_resting.png" width="480px" />
+                <figcaption align="middle"> Pinned Cloth at Rest</figcaption>
+            </td>
+        </tr>
+        </table>
+    </div>
+
+    <p>Here, we update our scene to actually be able to simulate the movement of points and interaction of the springs and masses. There
+    are several different variables we may alter to get some interesting results.</p>
+
+    <p>Here, we observe that at lower ks the springs tend to deflect drastically. This is die to the fact that ks is a ratio of
+        force to deflection distance. Equally, at a very high ks, there is no deflection at all and the cloth falls in a very rigid
+        fashion.</p>
+
+    <div align="center">
+        <table style="width=100%">
+            <tr>Spring Interactions at Different ks</tr>
+            <tr>
+                <td align="middle">
+                    <img src="images/P2_ks100.png" width="480px" />
+                    <figcaption align="middle"> ks = 100 N/m</figcaption>
+                </td>
+                <td align="middle">
+                    <img src="images/P2_ks20000.png" width="480px" />
+                    <figcaption align="middle"> ks = 20000 N/m</figcaption>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <p>By altering the density of our material, we notice the opposite effect. Density is used in our calculation of mass, so the
+    greater the density of some material, the more force it applies in our case , as we use point masses. This force has to be
+    corrected and compensated by the springs in a physical model, so it follows that the greater the density a point mass, the more
+    difficult it becomes for a spring to compensate for its own stretch length.</p>
+
+    <div align="center">
+        <table style="width=100%">
+            <tr>Spring Interactions at Different ks</tr>
+            <tr>
+                <td align="middle">
+                    <img src="images/P2_density2.png" width="480px" />
+                    <figcaption align="middle"> density = 2 g/cm^2</figcaption>
+                </td>
+                <td align="middle">
+                    <img src="images/P2_density80.png" width="480px" />
+                    <figcaption align="middle"> ks = 80 g/cm^2</figcaption>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <p>The last parameter we are interested in between these spring interactions is the damping coefficient. The damping coefficient
+        in spring oscillation is basically a factor that determines the degradation or decay of oscillations in a system. We see this
+        in effect in our images below as the cloth swings back and forth when damping is at 0.0% (i.e. the springs continue to oscillate
+        without degradation) versus a very rigid, restricted movement shown by when our damping factor was maxed out, showing a very
+        slow descent to a resting position.
+    </p>
+
+    <div align="center">
+        <table style="width=100%">
+            <tr>Cloth Collision with a Sphere at Varying Damping</tr>
+            <tr>
+                <td align="middle">
+                    <img src="images/P2_damping0.png" width="480px" />
+                    <figcaption align="middle"> Damping = 0.0%</figcaption>
+                </td>
+                <td align="middle">
+                    <img src="images/P2_dampingmax.png" width="480px" />
+                    <figcaption align="middle"> Damping = 1.0%</figcaption>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <img src="images/P2_dampingmaxSide.png" width="480px" />
+                    <figcaption align="middle"> Damping = 1.0% Side View</figcaption>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <h2 align="middle">Part III: Handling Collisions with Other Objects</h2>
+    <div align="center">
+        <table style="width=100%">
+            <tr>Spring Interactions at Different ks</tr>
+            <tr>
+                <td align="middle" colspan="2">
+                    <img src="images/P3_sphere_ks5000.png" width="480px" />
+                    <figcaption align="middle"> (Default) ks = 5000 N/m</figcaption>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <img src="images/P3_sphere_ks500.png" width="480px" />
+                    <figcaption align="middle"> ks = 500 N/m</figcaption>
+                </td>
+                <td align="middle" colspan="2">
+                    <img src="images/P3_sphere_ks50000.png" width="480px" />
+                    <figcaption align="middle"> ks = 50000 N/m</figcaption>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div align="center">
+        <table style="width=100%">
+            <tr>
+                <td align="middle">
+                    <img src="images/P3_plane.png" width="480px" />
+                    <figcaption align="middle"> Cloth on a Plane</figcaption>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <h2 align="middle">Part IV: Handling Self-Collisions</h2>
+
+    <table class="tg">
+        <tr>Self Collisions at Varying Parameters</tr>
+        <tr>
+            <th class="tg-0lax">Density = 5 g/cm^2</th>
+            <th class="tg-0lax">
+                <img src="images/P4_density5-1.png" width="480px" />
+            </th>
+            <th class="tg-0lax">
+                <img src="images/P4_density5_2.png" width="480px" />
+            </th>
+            <th class="tg-0lax">
+                <img src="images/P4_density5-3.png" width="480px" />
+            </th>
+        </tr>
+        <tr>
+            <td class="tg-0lax">Density = 20 g/cm^2</td>
+            <td class="tg-0lax">
+                <img src="images/P4_density20-1.png" width="480px" />
+            </td>
+            <td class="tg-0lax">
+                <img src="images/P4_density20-2.png" width="480px" />
+            </td>
+            <td class="tg-0lax">
+                <img src="images/P4_density20-3.png" width="480px" />
+            </td>
+        </tr>
+        <tr>
+            <td class="tg-0lax">
+                <img src="images/P4_1.png" width="480px" />
+                <figcaption align="middle"> Default Settings: Density = 15 g/cm^2; ks = 5000 N/m</figcaption>
+            </td>
+            <td class="tg-0lax">
+                <img src="images/P4_2.png" width="480px" />
+            </td>
+            <td class="tg-0lax">
+                <img src="images/P4_3.png" width="480px" />
+            </td>
+            <td class="tg-0lax">
+                <img src="images/P4_4.png" width="480px" />
+            </td>
+        </tr>
+        <tr>
+            <td class="tg-0lax">ks = 2500 N/m</td>
+            <td class="tg-0lax">
+                <img src="images/P4_ks2500-1.png" width="480px" />
+            </td>
+            <td class="tg-0lax">
+                <img src="images/P4_ks2500-2.png" width="480px" />
+            </td>
+            <td class="tg-0lax">
+                <img src="images/P4_ks2500-3.png" width="480px" />
+            </td>
+        </tr>
+        <tr>
+            <td class="tg-0lax">ks = 8000 N/m</td>
+            <td class="tg-0lax">
+                <img src="images/P4_ks8000-1.png" width="480px" />
+            </td>
+            <td class="tg-0lax">
+                <img src="images/P4_ks8000-2.png" width="480px" />
+            </td>
+            <td class="tg-0lax">
+                <img src="images/P4_ks8000-3.png" width="480px" />
+            </td>
+        </tr>
+    </table>
+
+    <h2 align="middle">Part V: Shaders</h2>
+    <table style="width=100%">
+        <tr>
+            <td>
+                <img src="images/P5_mirror-1.png" width="480px" />
+                <figcaption align="middle"> Mirror Texture</figcaption>
+            </td>
+            <td>
+                <img src="images/P5_mirror-2.png" width="480px" />
+                <figcaption align="middle"> Mirror Texture at Rest</figcaption>
+            </td>
+        </tr>
+    </table>
+    <p>The last part of our project was to implement shaders. Shaders are programs that run in parallel in the GPU that process sections
+    of the graphics pipeline. In effect, a shader is a set of instructions that should be applied to every pixel or portion of some image
+    we are trying to process. </p>
+
+    <p>Blinn-Phong shading separates lighting into three levels; ambient, diffuse, and specular. Then each of those channels is summed together
+    for a resultant overal global illumination. This method of lighting allows us to give objects a glossy/shiny surface if we so desire.</p>
+
+    <div align="center">
+        <table style="width=100%">
+            <tr>Wireframes:Springs and Point Masses</tr>
+            <tr>
+                <td align="middle">
+                    <img src="images/P5_phong_ambient.png" width="480px" />
+                    <figcaption align="middle"> Ambient Lighting</figcaption>
+                </td>
+            </tr>
+            <tr>
+                <td align="middle">
+                    <img src="images/P5_phong_diffuse.png" width="480px" />
+                    <figcaption align="middle"> Diffuse Lighting</figcaption>
+                </td>
+            </tr>
+            <tr>
+                <td align="middle">
+                    <img src="images/P5_phong_specular.png" width="480px" />
+                    <figcaption align="middle"> Specular Lighting</figcaption>
+                </td>
+            </tr>
+            <tr>
+                <td align="middle">
+                    <img src="images/P5_phong_all.png" width="480px" />
+                    <figcaption align="middle"> Blinn-Phong Lighting</figcaption>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div align="center">
+        <table style="width=100%">
+            <tr>Bump vs Displacement Mapping</tr>
+            <tr>
+                <td>
+                    <img src="images/P5_bump-1.png" width="480px" />
+                    <figcaption align="middle"> Bump Mapping</figcaption>
+                </td>
+                <td>
+                    <img src="images/P5_bump-2.png" width="480px" />
+                    <figcaption align="middle"> Bump Mapping at Rest</figcaption>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <img src="images/P5_displacement-1.png" width="480px" />
+                    <figcaption align="middle"> Displacement Mapping</figcaption>
+                </td>
+                <td>
+                    <img src="images/P5_displacement-2.png" width="480px" />
+                    <figcaption align="middle"> Displacement Mapping at Rest</figcaption>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+
+</body>
+</html>
